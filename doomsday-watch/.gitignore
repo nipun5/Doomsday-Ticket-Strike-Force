@@ -1,0 +1,10 @@
+.env
+.deps/
+.venv/
+__pycache__/
+state.json
+state.json.tmp
+telegram_subscribers.json
+telegram_cursor.json
+telegram_cursor.json.tmp
+*.log

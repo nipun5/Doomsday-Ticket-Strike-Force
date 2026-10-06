@@ -1,0 +1,17 @@
+[Unit]
+Description=Avengers Doomsday Telegram welcome and subscription bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/doomsday-watch
+EnvironmentFile=/home/ubuntu/doomsday-watch/.env
+ExecStart=/home/ubuntu/doomsday-watch/.venv/bin/python /home/ubuntu/doomsday-watch/telegram_bot.py
+Restart=always
+RestartSec=15
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

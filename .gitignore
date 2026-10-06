@@ -1,0 +1,10 @@
+# Deployment bundle; publish the source tree instead.
+/doomsday-watch-deploy.zip
+
+# Local credentials and runtime state if moved to the repository root.
+.env
+.venv/
+__pycache__/
+state.json
+telegram_subscribers.json
+telegram_cursor.json
