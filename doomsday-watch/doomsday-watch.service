@@ -8,6 +8,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/doomsday-watch
 EnvironmentFile=/home/ubuntu/doomsday-watch/.env
+Environment=TZ=Asia/Kolkata
 Environment=WATCH_LOG_FILE=/home/ubuntu/doomsday-watch/watch.log
 ExecStart=/home/ubuntu/doomsday-watch/.venv/bin/python /home/ubuntu/doomsday-watch/watch.py
 Restart=always

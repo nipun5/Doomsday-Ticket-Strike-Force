@@ -374,9 +374,11 @@ def main() -> int:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         handler = logging.FileHandler(log_path, encoding="utf-8")
         log_path.chmod(0o600)
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", handlers=[handler])
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s",
+                            datefmt="%Y-%m-%d %H:%M:%S %Z", handlers=[handler])
     else:
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s",
+                            datefmt="%Y-%m-%d %H:%M:%S %Z")
     if not enabled_channels():
         parser.error("configure at least one alert channel; see .env.example")
     interval = max(600, int(os.getenv("POLL_SECONDS", str(DEFAULT_INTERVAL))))

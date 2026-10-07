@@ -8,6 +8,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/doomsday-watch
 EnvironmentFile=/home/ubuntu/doomsday-watch/.env
+Environment=TZ=Asia/Kolkata
 ExecStart=/home/ubuntu/doomsday-watch/.venv/bin/python /home/ubuntu/doomsday-watch/telegram_bot.py
 Restart=always
 RestartSec=15

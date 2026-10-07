@@ -85,7 +85,8 @@ def save_cursor(offset: int) -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S %Z")
     token = os.environ["TELEGRAM_BOT_TOKEN"]
     owner_id = os.getenv("TELEGRAM_CHAT_ID", "")
     session = requests.Session()
