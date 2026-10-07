@@ -86,6 +86,16 @@ journalctl -u doomsday-watch -f
 
 `systemd` starts the monitor after reboots and restarts it after crashes. `state.json` remains in the watcher directory, so delivered alerts are not repeated after restarts. The process exposes no web port.
 
+Check the live status without making an extra request to either ticket site:
+
+```bash
+cd /home/ubuntu/doomsday-watch
+sudo -u ubuntu .venv/bin/python status.py
+tail -n 20 watch.log
+```
+
+The service checks each site once per 600-second cycle. Before each cycle, it clears the previous routine `watch.log` while no opening has been confirmed, leaving the latest cycle visible. As soon as either site has confirmed tickets, it preserves that log and all later entries. `state.json` retains the last result and error count independently of the routine log. Systemd's older journal entries remain under the server's normal journal retention policy; the watcher no longer writes routine checks there.
+
 For an independent outage warning, create a [Healthchecks.io](https://healthchecks.io/pricing/) check with a **10-minute period and at least 5-minute grace time**, connect its email or Telegram alert, and set `HEALTHCHECK_URL` to its private ping URL. The script pings after each cycle, including cycles with site errors. If the VM or process stops, Healthchecks.io detects the missing ping; site read failures still produce the monitor's own alerts.
 
 To stop checking after booking, run `systemctl disable --now doomsday-watch`. Delete the Droplet to stop its recurring charge.

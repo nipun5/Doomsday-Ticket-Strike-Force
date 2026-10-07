@@ -277,6 +277,19 @@ def load_state(path: Path) -> dict[str, Any]:
         raise RuntimeError(f"Cannot read state {path}; refusing to reset sent alerts") from exc
 
 
+def tickets_found(state: dict[str, Any]) -> bool:
+    """Keep logs after any confirmed opening, including one from older state files."""
+    return bool(state.get("ticket_seen")) or any(
+        event.startswith("open:") for event in state.get("delivered", {})
+    )
+
+
+def begin_cycle_log(log_path: Path | None, state: dict[str, Any]) -> None:
+    """Keep only the current cycle's routine log until an opening is found."""
+    if log_path is not None and not tickets_found(state):
+        log_path.write_text("", encoding="utf-8")
+
+
 def save_state(path: Path, state: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(path.suffix + ".tmp")
@@ -306,8 +319,14 @@ def run_once(path: Path, state: dict[str, Any], bms: Any, district: requests.Ses
         try:
             finding = check()
             state["failures"][site] = 0
+            state.setdefault("last_checks", {})[site] = {
+                "checked_at": time.time(), "status": "open" if finding.open else "waiting",
+                "detail": finding.detail,
+            }
             LOG.info("%s: %s", site, finding.detail)
             if finding.open:
+                state["ticket_seen"] = True
+                save_state(path, state)
                 date_text = ", ".join(finding.dates[:5]) or "check the listing for dates"
                 deliver_once(
                     path, state, f"open:{site}", f"Avengers: Doomsday tickets open on {site}",
@@ -318,6 +337,9 @@ def run_once(path: Path, state: dict[str, Any], bms: Any, district: requests.Ses
                 state["fault_sequence"][site] = state["fault_sequence"].get(site, 0) + 1
             failures = state["failures"].get(site, 0) + 1
             state["failures"][site] = failures
+            state.setdefault("last_checks", {})[site] = {
+                "checked_at": time.time(), "status": "error", "detail": str(exc),
+            }
             LOG.error("%s check failed (%s in a row): %s", site, failures, exc)
             if failures >= 3:
                 deliver_once(
@@ -326,6 +348,7 @@ def run_once(path: Path, state: dict[str, Any], bms: Any, district: requests.Ses
                     f"{failures} consecutive checks failed. This is not a no-tickets result. Error: {exc}",
                     BMS_URL + PROBE_DATE if site == "BookMyShow" else DISTRICT_URL,
                 )
+    state["last_cycle_completed"] = time.time()
     save_state(path, state)
 
 
@@ -346,7 +369,14 @@ def main() -> int:
     parser.add_argument("--once", action="store_true", help="check both sites once and exit")
     parser.add_argument("--test-alert", action="store_true", help="send a test through configured channels")
     args = parser.parse_args()
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    log_path = Path(os.environ["WATCH_LOG_FILE"]) if os.getenv("WATCH_LOG_FILE") else None
+    if log_path is not None:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.FileHandler(log_path, encoding="utf-8")
+        log_path.chmod(0o600)
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", handlers=[handler])
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if not enabled_channels():
         parser.error("configure at least one alert channel; see .env.example")
     interval = max(600, int(os.getenv("POLL_SECONDS", str(DEFAULT_INTERVAL))))
@@ -367,6 +397,7 @@ def main() -> int:
                 time.sleep(remaining)
         while True:
             started = time.monotonic()
+            begin_cycle_log(log_path, state)
             run_once(path, state, bms, district)
             ping_healthcheck()
             if args.once:

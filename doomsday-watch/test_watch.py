@@ -73,6 +73,27 @@ class ParserTests(unittest.TestCase):
 
 
 class AlertTests(unittest.TestCase):
+    def test_routine_log_clears_until_opening_then_is_preserved(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
+            log = Path(directory) / "watch.log"
+            log.write_text("old check\n", encoding="utf-8")
+            state_path = Path(directory) / "state.json"
+            state = watch.load_state(state_path)
+            watch.begin_cycle_log(log, state)
+            self.assertEqual(log.read_text(encoding="utf-8"), "")
+
+            with patch.object(watch, "check_bms", return_value=watch.Finding(
+                "BookMyShow", True, ("20261218",), "https://example.test", "1 confirmed show"
+            )), patch.object(watch, "check_district", return_value=watch.Finding(
+                "District", False, (), "https://example.test", "0 dates"
+            )), patch.object(watch, "enabled_channels", return_value=[]):
+                watch.run_once(state_path, state, object(), object())
+
+            self.assertTrue(watch.load_state(state_path)["ticket_seen"])
+            log.write_text("ticket found\n", encoding="utf-8")
+            watch.begin_cycle_log(log, watch.load_state(state_path))
+            self.assertEqual(log.read_text(encoding="utf-8"), "ticket found\n")
+
     def test_telegram_recipients_retry_independently(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as directory:
             path = Path(directory) / "state.json"
