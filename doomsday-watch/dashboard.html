@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Doomsday Ticket Strike Force</title>
+<style>
+  :root { --bg: #0b0d12; --card: #151922; --line: #262c38; --text: #e8ebf1; --muted: #8b93a3;
+          --accent: #c9a227; --ok: #2fbf71; --warn: #e0a526; --bad: #e5484d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: .02em; }
+  h2 { font-size: 1rem; margin: 0 0 12px; color: var(--muted); font-weight: 600;
+       text-transform: uppercase; letter-spacing: .08em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+            padding: 20px; margin-bottom: 16px; }
+  .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+  .clock div { background: var(--bg); border-radius: 8px; padding: 12px 4px; }
+  .clock b { display: block; font-size: clamp(1.8rem, 7vw, 3rem); color: var(--accent);
+             font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .clock span { color: var(--muted); font-size: .8rem; text-transform: uppercase; }
+  .video { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .sites { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .site { background: var(--bg); border-radius: 8px; padding: 16px; }
+  .site h3 { margin: 0 0 8px; font-size: 1.1rem; display: flex; justify-content: space-between;
+             align-items: center; gap: 8px; }
+  .pill { font-size: .75rem; padding: 2px 10px; border-radius: 999px; font-weight: 700;
+          text-transform: uppercase; }
+  .waiting { background: #3a3220; color: var(--warn); }
+  .open { background: #173a28; color: var(--ok); }
+  .error, .unknown { background: #3f1d20; color: var(--bad); }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: .9rem; }
+  dt { color: var(--muted); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  .banner { padding: 14px 16px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; display: none; }
+  .banner.show { display: block; }
+  #opened { background: #173a28; color: var(--ok); }
+  #stale { background: #3f1d20; color: var(--bad); }
+  .meta { margin-top: 12px; color: var(--muted); font-size: .9rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Doomsday Ticket Strike Force</h1>
+  <p class="sub">Avengers: Doomsday · Delhi/NCR · all times IST</p>
+
+  <section>
+    <h2>India release · 17 Dec 2026, 12:00 AM IST</h2>
+    <div class="clock" id="clock">
+      <div><b id="d">–</b><span>days</span></div>
+      <div><b id="h">–</b><span>hours</span></div>
+      <div><b id="m">–</b><span>minutes</span></div>
+      <div><b id="s">–</b><span>seconds</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Booking status</h2>
+    <div class="banner" id="opened">Tickets confirmed open — check your alerts and book now:
+      <a href="https://in.bookmyshow.com/movies/national-capital-region-ncr/avengers-doomsday/ET00439706" rel="noopener" target="_blank">BookMyShow</a> ·
+      <a href="https://www.district.in/movies/avengers-doomsday-movie-tickets-in-delhi-ncr-MV176735" rel="noopener" target="_blank">District</a></div>
+    <div class="banner" id="stale">The last check is more than 20 minutes old. The watcher may be down.</div>
+    <div class="sites" id="sites"></div>
+    <p class="meta">Last check completed: <span id="last">–</span><br>
+      Next check due: <span id="next">–</span> <span id="eta"></span></p>
+  </section>
+
+  <section>
+    <h2>Avengers: Doomsday Clock</h2>
+    <div class="video">
+      <iframe src="https://www.youtube-nocookie.com/embed/f17J3AXVK5w" title="Avengers: Doomsday Clock"
+        allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+  </section>
+</main>
+<script>
+const RELEASE = Date.parse("2026-12-17T00:00:00+05:30");
+const ist = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
+  year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+const fmt = t => t ? ist.format(new Date(t * 1000)) + " IST" : "never";
+const $ = id => document.getElementById(id);
+let nextDue = null;
+
+function tick() {
+  let left = Math.max(0, RELEASE - Date.now()) / 1000;
+  const parts = [86400, 3600, 60, 1].map(unit => { const n = Math.floor(left / unit); left -= n * unit; return n; });
+  ["d", "h", "m", "s"].forEach((id, i) => $(id).textContent = i ? String(parts[i]).padStart(2, "0") : parts[i]);
+  if (nextDue) {
+    const secs = Math.round(nextDue - Date.now() / 1000);
+    $("eta").textContent = secs > 0 ? `(in ${Math.floor(secs / 60)}m ${secs % 60}s)` : "(running now)";
+  }
+}
+
+function row(dl, label, value) {
+  const dt = document.createElement("dt"), dd = document.createElement("dd");
+  dt.textContent = label; dd.textContent = value; dl.append(dt, dd);
+}
+
+async function refresh() {
+  try {
+    const data = await (await fetch("/api/status", { cache: "no-store" })).json();
+    if (data.error) throw new Error(data.error);
+    const sites = $("sites");
+    sites.replaceChildren();
+    for (const [name, s] of Object.entries(data.sites)) {
+      const card = document.createElement("div"), h3 = document.createElement("h3"),
+            pill = document.createElement("span"), dl = document.createElement("dl");
+      card.className = "site"; pill.className = "pill " + s.status; pill.textContent = s.status;
+      h3.append(name, pill);
+      row(dl, "Result", s.detail);
+      row(dl, "Checked", fmt(s.checked_at));
+      row(dl, "Errors in a row", s.errors);
+      card.append(h3, dl); sites.append(card);
+    }
+    $("last").textContent = fmt(data.last_cycle_completed);
+    $("next").textContent = fmt(data.next_check_due);
+    nextDue = data.next_check_due;
+    $("opened").classList.toggle("show", data.ticket_seen);
+    $("stale").classList.toggle("show", !data.last_cycle_completed || Date.now() / 1000 - data.last_cycle_completed > 1200);
+  } catch (err) {
+    $("sites").textContent = "Status unavailable: " + err.message;
+  }
+}
+
+tick(); refresh();
+setInterval(tick, 1000);
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

@@ -100,6 +100,26 @@ The systemd services set `TZ=Asia/Kolkata`, so `watch.log`, Telegram service log
 
 For an independent outage warning, create a [Healthchecks.io](https://healthchecks.io/pricing/) check with a **10-minute period and at least 5-minute grace time**, connect its email or Telegram alert, and set `HEALTHCHECK_URL` to its private ping URL. The script pings after each cycle, including cycles with site errors. If the VM or process stops, Healthchecks.io detects the missing ping; site read failures still produce the monitor's own alerts.
 
+## Private dashboard
+
+`dashboard.py` serves a page with a countdown to the India release (17 Dec 2026, IST), the *Avengers: Doomsday Clock* video, and each site's latest result, check time, error count and next check. It reads only `state.json`, never contacts BookMyShow or District, and does not change the 10-minute polling. It returns display fields only, so Telegram chat IDs in the delivery records are never sent to the browser. It listens on `127.0.0.1:8090` without loading `.env`; Caddy adds HTTPS (Let's Encrypt) and a password login in front of it.
+
+Without a domain, use the free `sslip.io` name for the Droplet: replace the dots in its IP with dashes, as in `203-0-113-7.sslip.io`. Ports 80 and 443 must be open for the certificate.
+
+```bash
+apt install -y caddy
+cd /home/ubuntu/doomsday-watch
+cp doomsday-dashboard.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now doomsday-dashboard
+mkdir -p /etc/systemd/system/caddy.service.d
+printf '[Service]\nEnvironment=DASHBOARD_HOST=YOUR-HOST.sslip.io\n' > /etc/systemd/system/caddy.service.d/dashboard.conf
+systemctl daemon-reload
+cp Caddyfile /etc/caddy/Caddyfile
+sh dashboard_user.sh yourname    # asks for a password, hidden; loads the config
+```
+
+Invite a friend with `sh dashboard_user.sh friendname` and send them the URL and that password privately. `sh dashboard_user.sh friendname remove` revokes access. Logins are stored as bcrypt hashes in `/etc/caddy/dashboard_users`, outside this directory and Git.
+
 To stop checking after booking, run `systemctl disable --now doomsday-watch`. Delete the Droplet to stop its recurring charge.
 
 ## Limits
@@ -109,5 +129,5 @@ Ten-minute polling means the alert usually arrives within 10 minutes **if both s
 ## Tests
 
 ```bash
-python -m unittest -v test_watch.py test_telegram_bot.py
+python -m unittest -v test_watch.py test_telegram_bot.py test_dashboard.py
 ```

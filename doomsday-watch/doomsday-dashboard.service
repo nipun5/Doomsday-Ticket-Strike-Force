@@ -1,0 +1,19 @@
+[Unit]
+Description=Avengers Doomsday private dashboard (localhost only, behind Caddy)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/doomsday-watch
+# No EnvironmentFile: the dashboard needs no alert credentials.
+ExecStart=/usr/bin/python3 /home/ubuntu/doomsday-watch/dashboard.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
