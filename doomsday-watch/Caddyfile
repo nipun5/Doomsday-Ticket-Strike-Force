@@ -15,3 +15,6 @@
 	encode gzip
 	reverse_proxy 127.0.0.1:8090
 }
+
+# Other sites hosted on the same server keep their own files here (none is fine).
+import /etc/caddy/conf.d/*.caddy
