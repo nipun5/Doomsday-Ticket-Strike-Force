@@ -1,0 +1,21 @@
+[Unit]
+Description=Login pages and sessions for the private sites (localhost only, behind Caddy)
+After=network.target
+
+[Service]
+Type=simple
+# A throwaway system user that can only read Caddy's login files and its own signing key.
+DynamicUser=yes
+SupplementaryGroups=caddy
+StateDirectory=site-login
+ExecStart=/usr/bin/python3 /opt/site-login/login.py
+Restart=always
+RestartSec=5
+MemoryMax=100M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

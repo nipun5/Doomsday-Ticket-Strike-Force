@@ -1,10 +1,27 @@
-# Private dashboard: automatic HTTPS plus a login for every request.
+# Private dashboard: automatic HTTPS plus a login page with 30-day sessions.
 # DASHBOARD_HOST is set in a server-only systemd drop-in, never in Git.
 # Logins live in /etc/caddy/dashboard_users; manage them with dashboard_user.sh.
-{$DASHBOARD_HOST} {
-	basicauth {
-		import /etc/caddy/dashboard_users
+
+# Usage: import site_login <site id> <login theme> <upstream>
+# login.py checks /etc/caddy/<site id>_users and keeps each site's sessions separate.
+(site_login) {
+	@login path /login /logout
+	handle @login {
+		reverse_proxy 127.0.0.1:8099 {
+			header_up X-Login-Site {args.0}
+			header_up X-Login-Theme {args.1}
+		}
 	}
+	handle {
+		forward_auth 127.0.0.1:8099 {
+			uri /verify
+			header_up X-Login-Site {args.0}
+		}
+		reverse_proxy {args.2}
+	}
+}
+
+{$DASHBOARD_HOST} {
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
@@ -13,7 +30,7 @@
 		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; frame-src https://www.youtube-nocookie.com; frame-ancestors 'none'"
 	}
 	encode gzip
-	reverse_proxy 127.0.0.1:8090
+	import site_login dashboard doom 127.0.0.1:8090
 }
 
 # Other sites hosted on the same server keep their own files here (none is fine).

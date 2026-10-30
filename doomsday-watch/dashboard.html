@@ -162,13 +162,14 @@
   <section class="panel">
     <h2>Transmission intercepted · <b>Avengers: Doomsday Clock</b></h2>
     <div class="video">
-      <iframe src="https://www.youtube-nocookie.com/embed/f17J3AXVK5w" title="Avengers: Doomsday Clock"
-        allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+      <!-- Browsers only autoplay muted video; loop needs playlist set to the same video. -->
+      <iframe src="https://www.youtube-nocookie.com/embed/f17J3AXVK5w?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=f17J3AXVK5w&amp;playsinline=1&amp;rel=0" title="Avengers: Doomsday Clock"
+        allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
         referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
   </section>
 </main>
-<footer>Unofficial fan-made tracker. Not affiliated with Marvel Studios, BookMyShow or District. Scans both sites every 10 minutes; it never buys tickets.</footer>
+<footer>Unofficial fan-made tracker. Not affiliated with Marvel Studios, BookMyShow or District. Scans both sites every 10 minutes; it never buys tickets.<br><a href="/logout">Sign out</a></footer>
 <script>
 const RELEASE = Date.parse("2026-12-17T00:00:00+05:30"), CYCLE = 600, RING = 276.5;
 const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -209,7 +210,9 @@ function sensor(name, s) {
 }
 async function refresh() {
   try {
-    const data = await (await fetch("/api/status", { cache: "no-store" })).json();
+    const res = await fetch("/api/status", { cache: "no-store" });
+    if (res.status === 401) { location.href = "/login"; return; }  // 30-day session ended
+    const data = await res.json();
     if (data.error) throw new Error(data.error);
     $("sites").replaceChildren(...Object.entries(data.sites).map(([n, s]) => sensor(n, s)));
     $("last").textContent = fmt(data.last_cycle_completed);

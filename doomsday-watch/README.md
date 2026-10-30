@@ -102,14 +102,18 @@ For an independent outage warning, create a [Healthchecks.io](https://healthchec
 
 ## Private dashboard
 
-`dashboard.py` serves a page with a countdown to the India release (17 Dec 2026, IST), the *Avengers: Doomsday Clock* video, and each site's latest result, check time, error count and next check. It reads only `state.json`, never contacts BookMyShow or District, and does not change the 10-minute polling. It returns display fields only, so Telegram chat IDs in the delivery records are never sent to the browser. It listens on `127.0.0.1:8090` without loading `.env`; Caddy adds HTTPS (Let's Encrypt) and a password login in front of it.
+`dashboard.py` serves a page with a countdown to the India release (17 Dec 2026, IST), the *Avengers: Doomsday Clock* video, and each site's latest result, check time, error count and next check. It reads only `state.json`, never contacts BookMyShow or District, and does not change the 10-minute polling. It returns display fields only, so Telegram chat IDs in the delivery records are never sent to the browser. It listens on `127.0.0.1:8090` without loading `.env`; Caddy adds HTTPS (Let's Encrypt) in front of it, and `login.py` adds a sign-in page.
+
+`login.py` shows a themed sign-in page and keeps each browser signed in for 30 days with a signed, `HttpOnly`, `Secure` cookie. Caddy asks it to approve every request (`forward_auth`). It checks passwords against the bcrypt hashes from `dashboard_user.sh`, so resetting or removing a login ends that person's sessions. After 10 wrong passwords from one address in 15 minutes, it refuses sign-in for 15 minutes. It runs as a throwaway system user, listens on `127.0.0.1:8099` and keeps only its signing key in `/var/lib/site-login`. The `site_login` snippet in the `Caddyfile` lets another site on the same server use it with its own logins file.
 
 Without a domain, use the free `sslip.io` name for the Droplet: replace the dots in its IP with dashes, as in `203-0-113-7.sslip.io`. Ports 80 and 443 must be open for the certificate.
 
 ```bash
-apt install -y caddy
+apt install -y caddy python3-bcrypt
 cd /home/ubuntu/doomsday-watch
-cp doomsday-dashboard.service /etc/systemd/system/
+install -D -m 644 login.py /opt/site-login/login.py
+cp doomsday-dashboard.service site-login.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now site-login
 systemctl daemon-reload && systemctl enable --now doomsday-dashboard
 mkdir -p /etc/systemd/system/caddy.service.d
 printf '[Service]\nEnvironment=DASHBOARD_HOST=YOUR-HOST.sslip.io\n' > /etc/systemd/system/caddy.service.d/dashboard.conf
@@ -129,5 +133,5 @@ Ten-minute polling means the alert usually arrives within 10 minutes **if both s
 ## Tests
 
 ```bash
-python -m unittest -v test_watch.py test_telegram_bot.py test_dashboard.py
+python -m unittest -v test_watch.py test_telegram_bot.py test_dashboard.py test_login.py
 ```
