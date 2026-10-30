@@ -4,75 +4,163 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#040805">
 <title>Doomsday Ticket Strike Force</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0b0d12; --card: #151922; --line: #262c38; --text: #e8ebf1; --muted: #8b93a3;
-          --accent: #c9a227; --ok: #2fbf71; --warn: #e0a526; --bad: #e5484d; }
+  :root {
+    --void: #040805; --panel: rgba(10, 22, 14, .78); --edge: rgba(57, 255, 136, .18);
+    --doom: #39ff88; --emerald: #1fbf6a; --deep: #0b3d22; --steel: #a9bdb0; --text: #e4f3e9;
+    --amber: #ffc04d; --red: #ff5a5f;
+    --metal: linear-gradient(180deg, #f4fbf6 0%, #b9c9be 45%, #6f8577 55%, #dfe9e2 100%);
+    --display: "Cinzel", Georgia, serif; --ui: "Rajdhani", system-ui, sans-serif;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: .02em; }
-  h2 { font-size: 1rem; margin: 0 0 12px; color: var(--muted); font-weight: 600;
-       text-transform: uppercase; letter-spacing: .08em; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
-  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-            padding: 20px; margin-bottom: 16px; }
-  .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
-  .clock div { background: var(--bg); border-radius: 8px; padding: 12px 4px; }
-  .clock b { display: block; font-size: clamp(1.8rem, 7vw, 3rem); color: var(--accent);
-             font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .clock span { color: var(--muted); font-size: .8rem; text-transform: uppercase; }
-  .video { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; }
+  html { background: var(--void); }
+  body { margin: 0; min-height: 100vh; color: var(--text); font: 500 17px/1.5 var(--ui);
+         background: radial-gradient(1200px 600px at 50% -10%, rgba(31, 191, 106, .22), transparent 60%),
+                     radial-gradient(800px 500px at 100% 100%, rgba(11, 61, 34, .55), transparent 60%), var(--void); }
+  body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+                background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+  #embers { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  main { position: relative; z-index: 2; max-width: 1040px; margin: 0 auto; padding: 28px 16px 40px; }
+  a { color: var(--doom); }
+
+  /* Hero */
+  .hero { text-align: center; padding: 8px 0 20px; }
+  .crest { width: 86px; height: 86px; filter: drop-shadow(0 0 18px rgba(57,255,136,.55)); cursor: pointer;
+           transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+  .crest:hover, .crest.surge { transform: rotate(360deg) scale(1.08); }
+  .kicker { margin: 10px 0 0; letter-spacing: .5em; font-size: .78rem; color: var(--emerald); text-transform: uppercase; }
+  h1 { margin: 4px 0 2px; font: 800 clamp(2.3rem, 9vw, 4.6rem)/1 var(--display); letter-spacing: .08em;
+       background: var(--metal); -webkit-background-clip: text; background-clip: text; color: transparent;
+       filter: drop-shadow(0 0 22px rgba(57,255,136,.35)); }
+  .tagline { min-height: 1.6em; color: var(--steel); font-size: 1.05rem; transition: opacity .5s; }
+
+  /* Panels */
+  .panel { position: relative; background: var(--panel); border: 1px solid var(--edge); border-radius: 16px;
+           padding: 22px; margin-bottom: 18px; backdrop-filter: blur(6px);
+           box-shadow: 0 0 0 1px rgba(0,0,0,.6) inset, 0 20px 50px rgba(0,0,0,.45); }
+  .panel::before, .panel::after { content: ""; position: absolute; width: 18px; height: 18px; border: 2px solid var(--doom); opacity: .7; }
+  .panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 16px; }
+  .panel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 16px; }
+  h2 { margin: 0 0 16px; font: 600 .82rem var(--ui); letter-spacing: .32em; text-transform: uppercase; color: var(--emerald); }
+  h2 b { color: var(--text); font-weight: 700; }
+
+  /* Countdown */
+  .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .unit { text-align: center; padding: 16px 4px 12px; border-radius: 12px;
+          background: linear-gradient(180deg, rgba(57,255,136,.10), rgba(0,0,0,.35)); border: 1px solid var(--edge); }
+  .unit b { display: block; font: 700 clamp(2.2rem, 9vw, 4.2rem)/1 var(--ui); font-variant-numeric: tabular-nums;
+            color: var(--doom); text-shadow: 0 0 18px rgba(57,255,136,.7), 0 0 2px #fff; }
+  .unit span { font-size: .78rem; letter-spacing: .28em; color: var(--steel); text-transform: uppercase; }
+  .unit b.tick { animation: tick .45s ease-out; }
+  @keyframes tick { from { transform: translateY(-6px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .released { font: 800 clamp(1.6rem, 6vw, 2.6rem) var(--display); text-align: center; color: var(--doom); }
+
+  /* Ticket open alert */
+  .alert { display: none; text-align: center; border-color: var(--doom); animation: surge 1.4s ease-in-out infinite; }
+  .alert h3 { margin: 0 0 6px; font: 800 clamp(1.4rem, 5vw, 2.2rem) var(--display); color: var(--doom); }
+  body.live .alert { display: block; }
+  @keyframes surge { 50% { box-shadow: 0 0 60px rgba(57,255,136,.55); } }
+  .btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .btn { display: inline-block; padding: 12px 22px; border-radius: 10px; font: 700 1rem var(--ui); letter-spacing: .08em;
+         text-transform: uppercase; text-decoration: none; color: #04140a; background: var(--doom);
+         box-shadow: 0 0 22px rgba(57,255,136,.5); transition: transform .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .stale { display: none; margin-bottom: 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--red);
+           color: var(--red); background: rgba(255,90,95,.08); font-weight: 600; }
+  body.stale .stale { display: block; }
+
+  /* Sensors */
+  .grid { display: grid; grid-template-columns: 1fr 1fr 230px; gap: 14px; align-items: stretch; }
+  .sensor { border-radius: 14px; padding: 18px; background: rgba(0,0,0,.35); border: 1px solid var(--edge);
+            transition: transform .2s ease-out, border-color .3s; transform-style: preserve-3d; }
+  .sensor:hover { border-color: rgba(57,255,136,.5); }
+  .sensor header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .sensor h3 { margin: 0; font: 700 1.3rem var(--ui); letter-spacing: .04em; }
+  .state { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .14em; font-size: .8rem; text-transform: uppercase; }
+  .orb { width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: .35; transform: scale(.75); } }
+  .waiting { color: var(--amber); } .open { color: var(--doom); } .error, .unknown { color: var(--red); }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: .95rem; }
+  dt { color: var(--steel); } dd { margin: 0; overflow-wrap: anywhere; }
+  .scan { display: grid; place-items: center; text-align: center; border-radius: 14px; padding: 14px;
+          background: rgba(0,0,0,.35); border: 1px solid var(--edge); }
+  .ring { position: relative; width: 150px; height: 150px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 8; }
+  .ring .track { stroke: rgba(57,255,136,.12); }
+  .ring .bar { stroke: var(--doom); stroke-linecap: round; filter: drop-shadow(0 0 6px var(--doom)); transition: stroke-dashoffset 1s linear; }
+  .ring div { position: absolute; inset: 0; display: grid; place-content: center; }
+  .ring b { font: 700 2rem var(--ui); color: var(--doom); font-variant-numeric: tabular-nums; }
+  .ring span { font-size: .7rem; letter-spacing: .25em; color: var(--steel); }
+  .meta { margin-top: 10px; font-size: .85rem; color: var(--steel); }
+
+  /* Video */
+  .video { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid var(--edge);
+           box-shadow: 0 0 40px rgba(57,255,136,.15); }
   .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  .sites { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-  .site { background: var(--bg); border-radius: 8px; padding: 16px; }
-  .site h3 { margin: 0 0 8px; font-size: 1.1rem; display: flex; justify-content: space-between;
-             align-items: center; gap: 8px; }
-  .pill { font-size: .75rem; padding: 2px 10px; border-radius: 999px; font-weight: 700;
-          text-transform: uppercase; }
-  .waiting { background: #3a3220; color: var(--warn); }
-  .open { background: #173a28; color: var(--ok); }
-  .error, .unknown { background: #3f1d20; color: var(--bad); }
-  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: .9rem; }
-  dt { color: var(--muted); }
-  dd { margin: 0; overflow-wrap: anywhere; }
-  .banner { padding: 14px 16px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; display: none; }
-  .banner.show { display: block; }
-  #opened { background: #173a28; color: var(--ok); }
-  #stale { background: #3f1d20; color: var(--bad); }
-  .meta { margin-top: 12px; color: var(--muted); font-size: .9rem; }
-  a { color: var(--accent); }
+  footer { position: relative; z-index: 2; text-align: center; color: var(--steel); font-size: .8rem; padding: 0 16px 28px; opacity: .8; }
+
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .scan { padding: 18px; } }
+  @media (max-width: 480px) { main { padding-top: 18px; } .panel { padding: 16px; } .clock { gap: 6px; } .unit span { letter-spacing: .12em; font-size: .68rem; } .kicker { letter-spacing: .22em; font-size: .7rem; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
+<canvas id="embers" aria-hidden="true"></canvas>
 <main>
-  <h1>Doomsday Ticket Strike Force</h1>
-  <p class="sub">Avengers: Doomsday · Delhi/NCR · all times IST</p>
+  <header class="hero">
+    <svg class="crest" id="crest" viewBox="0 0 100 100" role="img" aria-label="Strike Force crest">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eaf5ee"/><stop offset=".5" stop-color="#7d9486"/><stop offset="1" stop-color="#dfe9e2"/></linearGradient></defs>
+      <path d="M50 3 92 26v48L50 97 8 74V26z" fill="#06140b" stroke="url(#g)" stroke-width="4"/>
+      <path d="M50 14 82 32v36L50 86 18 68V32z" fill="none" stroke="#39ff88" stroke-width="1.5" opacity=".7"/>
+      <path d="M34 30h18c12 0 20 8 20 20s-8 20-20 20H34z M44 40v20h8c6 0 10-4 10-10s-4-10-10-10z" fill="url(#g)" fill-rule="evenodd"/>
+    </svg>
+    <p class="kicker">Ticket Strike Force · Delhi / NCR</p>
+    <h1>DOOMSDAY</h1>
+    <div class="tagline" id="tagline">The clock is ticking.</div>
+  </header>
 
-  <section>
-    <h2>India release · 17 Dec 2026, 12:00 AM IST</h2>
-    <div class="clock" id="clock">
-      <div><b id="d">–</b><span>days</span></div>
-      <div><b id="h">–</b><span>hours</span></div>
-      <div><b id="m">–</b><span>minutes</span></div>
-      <div><b id="s">–</b><span>seconds</span></div>
+  <section class="panel alert" id="alert">
+    <h3>Doom has arrived. Tickets are live.</h3>
+    <div>Bookings are confirmed open. Check your alerts and book now.</div>
+    <div class="btns">
+      <a class="btn" href="https://in.bookmyshow.com/movies/national-capital-region-ncr/avengers-doomsday/ET00439706" target="_blank" rel="noopener">BookMyShow</a>
+      <a class="btn" href="https://www.district.in/movies/avengers-doomsday-movie-tickets-in-delhi-ncr-MV176735" target="_blank" rel="noopener">District</a>
     </div>
   </section>
 
-  <section>
-    <h2>Booking status</h2>
-    <div class="banner" id="opened">Tickets confirmed open — check your alerts and book now:
-      <a href="https://in.bookmyshow.com/movies/national-capital-region-ncr/avengers-doomsday/ET00439706" rel="noopener" target="_blank">BookMyShow</a> ·
-      <a href="https://www.district.in/movies/avengers-doomsday-movie-tickets-in-delhi-ncr-MV176735" rel="noopener" target="_blank">District</a></div>
-    <div class="banner" id="stale">The last check is more than 20 minutes old. The watcher may be down.</div>
-    <div class="sites" id="sites"></div>
-    <p class="meta">Last check completed: <span id="last">–</span><br>
-      Next check due: <span id="next">–</span> <span id="eta"></span></p>
+  <section class="panel">
+    <h2>Avengers: Doomsday · India release · <b>17 Dec 2026, 12:00 AM IST</b></h2>
+    <div class="clock" id="clock">
+      <div class="unit"><b id="d">–</b><span>Days</span></div>
+      <div class="unit"><b id="h">–</b><span>Hours</span></div>
+      <div class="unit"><b id="m">–</b><span>Minutes</span></div>
+      <div class="unit"><b id="s">–</b><span>Seconds</span></div>
+    </div>
   </section>
 
-  <section>
-    <h2>Avengers: Doomsday Clock</h2>
+  <section class="panel">
+    <h2>Booking surveillance · <b>all times IST</b></h2>
+    <div class="stale">The last scan is more than 20 minutes old. The watcher may be down.</div>
+    <div class="grid">
+      <div id="sites" style="display:contents"></div>
+      <div class="scan">
+        <div class="ring">
+          <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="bar" id="ring" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="276.5"/></svg>
+          <div><b id="eta">--:--</b><span>NEXT SCAN</span></div>
+        </div>
+        <div class="meta">Last scan <span id="last">–</span><br>Next <span id="next">–</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Transmission intercepted · <b>Avengers: Doomsday Clock</b></h2>
     <div class="video">
       <iframe src="https://www.youtube-nocookie.com/embed/f17J3AXVK5w" title="Avengers: Doomsday Clock"
         allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen
@@ -80,53 +168,104 @@
     </div>
   </section>
 </main>
+<footer>Unofficial fan-made tracker. Not affiliated with Marvel Studios, BookMyShow or District. Scans both sites every 10 minutes; it never buys tickets.</footer>
 <script>
-const RELEASE = Date.parse("2026-12-17T00:00:00+05:30");
+const RELEASE = Date.parse("2026-12-17T00:00:00+05:30"), CYCLE = 600, RING = 276.5;
+const motion = !matchMedia("(prefers-reduced-motion: reduce)").matches;
 const ist = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
-  year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
-const fmt = t => t ? ist.format(new Date(t * 1000)) + " IST" : "never";
+  hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+const fmt = t => t ? ist.format(new Date(t * 1000)) : "never";
 const $ = id => document.getElementById(id);
 let nextDue = null;
 
+// Countdown + next-scan ring
 function tick() {
   let left = Math.max(0, RELEASE - Date.now()) / 1000;
-  const parts = [86400, 3600, 60, 1].map(unit => { const n = Math.floor(left / unit); left -= n * unit; return n; });
-  ["d", "h", "m", "s"].forEach((id, i) => $(id).textContent = i ? String(parts[i]).padStart(2, "0") : parts[i]);
+  if (!left) { $("clock").outerHTML = '<div class="released">Doomsday is here.</div>'; }
+  const parts = [86400, 3600, 60, 1].map(u => { const n = Math.floor(left / u); left -= n * u; return n; });
+  ["d", "h", "m", "s"].forEach((id, i) => {
+    const el = $(id); if (!el) return;
+    const v = i ? String(parts[i]).padStart(2, "0") : String(parts[i]);
+    if (el.textContent !== v) { el.textContent = v; if (motion) { el.classList.remove("tick"); void el.offsetWidth; el.classList.add("tick"); } }
+  });
   if (nextDue) {
-    const secs = Math.round(nextDue - Date.now() / 1000);
-    $("eta").textContent = secs > 0 ? `(in ${Math.floor(secs / 60)}m ${secs % 60}s)` : "(running now)";
+    const secs = Math.round(nextDue - Date.now() / 1000), s = Math.max(0, secs);
+    $("eta").textContent = secs > 0 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : "NOW";
+    $("ring").style.strokeDashoffset = RING * Math.min(1, s / CYCLE);
   }
 }
 
-function row(dl, label, value) {
-  const dt = document.createElement("dt"), dd = document.createElement("dd");
-  dt.textContent = label; dd.textContent = value; dl.append(dt, dd);
+// Saved watcher state (never contacts the ticket sites)
+function sensor(name, s) {
+  const el = document.createElement("article"), label = { waiting: "Waiting", open: "Tickets live", error: "Scan error" }[s.status] || "Unknown";
+  el.className = "sensor";
+  el.innerHTML = `<header><h3></h3><div class="state ${s.status}"><i class="orb"></i><span></span></div></header>
+    <dl><dt>Result</dt><dd></dd><dt>Scanned</dt><dd></dd><dt>Errors in a row</dt><dd></dd></dl>`;
+  el.querySelector("h3").textContent = name;
+  el.querySelector(".state span").textContent = label;
+  const dd = el.querySelectorAll("dd");
+  dd[0].textContent = s.detail; dd[1].textContent = fmt(s.checked_at); dd[2].textContent = s.errors;
+  return el;
 }
-
 async function refresh() {
   try {
     const data = await (await fetch("/api/status", { cache: "no-store" })).json();
     if (data.error) throw new Error(data.error);
-    const sites = $("sites");
-    sites.replaceChildren();
-    for (const [name, s] of Object.entries(data.sites)) {
-      const card = document.createElement("div"), h3 = document.createElement("h3"),
-            pill = document.createElement("span"), dl = document.createElement("dl");
-      card.className = "site"; pill.className = "pill " + s.status; pill.textContent = s.status;
-      h3.append(name, pill);
-      row(dl, "Result", s.detail);
-      row(dl, "Checked", fmt(s.checked_at));
-      row(dl, "Errors in a row", s.errors);
-      card.append(h3, dl); sites.append(card);
-    }
+    $("sites").replaceChildren(...Object.entries(data.sites).map(([n, s]) => sensor(n, s)));
     $("last").textContent = fmt(data.last_cycle_completed);
     $("next").textContent = fmt(data.next_check_due);
     nextDue = data.next_check_due;
-    $("opened").classList.toggle("show", data.ticket_seen);
-    $("stale").classList.toggle("show", !data.last_cycle_completed || Date.now() / 1000 - data.last_cycle_completed > 1200);
+    document.body.classList.toggle("live", data.ticket_seen);
+    document.body.classList.toggle("stale", !data.last_cycle_completed || Date.now() / 1000 - data.last_cycle_completed > 1200);
   } catch (err) {
     $("sites").textContent = "Status unavailable: " + err.message;
   }
+}
+
+// Original fan taglines
+const LINES = ["The clock is ticking.", "Latveria does not queue. Neither do we.", "Two sites. One mission. Every ten minutes.",
+               "When the gates open, we strike first.", "Watching BookMyShow and District, so you don't have to."];
+let line = 0;
+setInterval(() => { const t = $("tagline"); t.style.opacity = 0;
+  setTimeout(() => { line = (line + 1) % LINES.length; t.textContent = LINES[line]; t.style.opacity = 1; }, 500); }, 6000);
+
+// Crest surge on click
+$("crest").onclick = e => { e.currentTarget.classList.add("surge"); burst(innerWidth / 2, 120);
+  setTimeout(() => $("crest").classList.remove("surge"), 700); };
+
+// Card tilt
+if (motion) document.addEventListener("pointermove", e => {
+  const card = e.target.closest?.(".sensor"); if (!card) return;
+  const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+  card.style.transform = `perspective(700px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg)`;
+});
+document.addEventListener("pointerout", e => { const c = e.target.closest?.(".sensor"); if (c && !c.contains(e.relatedTarget)) c.style.transform = ""; });
+
+// Green embers that shy away from the pointer
+const cv = $("embers"), ctx = cv.getContext("2d"), ptr = { x: -999, y: -999 };
+let P = [];
+function size() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); }
+const spawn = (x, y, v = .4) => ({ x: x ?? Math.random() * innerWidth, y: y ?? innerHeight + 10, r: Math.random() * 2 + .6,
+  vx: (Math.random() - .5) * v, vy: -(Math.random() * .6 + .2) * (v > .4 ? 3 : 1), life: 1 });
+function burst(x, y) { for (let i = 0; i < 40; i++) P.push(spawn(x, y, 3)); }
+function frame() {
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  while (P.length < Math.min(70, innerWidth / 14)) P.push(spawn(undefined, Math.random() * innerHeight));
+  P = P.filter(p => p.y > -10 && p.life > 0);
+  for (const p of P) {
+    const dx = p.x - ptr.x, dy = p.y - ptr.y, d2 = dx * dx + dy * dy;
+    if (d2 < 9000) { p.vx += dx / 900; p.vy += dy / 900; }
+    p.x += p.vx; p.y += p.vy; p.vx *= .98; p.vy = p.vy * .98 - .004; if (p.vx > 3 || p.vy < -3) p.life -= .02;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7);
+    ctx.fillStyle = `rgba(57,255,136,${.25 + p.r / 5})`; ctx.shadowColor = "#39ff88"; ctx.shadowBlur = 8; ctx.fill();
+  }
+  if (!document.hidden) requestAnimationFrame(frame);
+}
+if (motion) {
+  size(); addEventListener("resize", size);
+  addEventListener("pointermove", e => { ptr.x = e.clientX; ptr.y = e.clientY; });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) requestAnimationFrame(frame); });
+  requestAnimationFrame(frame);
 }
 
 tick(); refresh();
